@@ -1,6 +1,13 @@
 module Xenesis.Parsers.Cpp.Syntax where
 
-data TranslationUnit = TU [Declaration]
+type Include = String
+
+data TranslationUnit =
+  TU [Include]
+     [Declaration]
+
+newtype Ident =
+  Ident String
 
 data Declaration
   = Decl_Block
@@ -16,3 +23,11 @@ data Declaration
 data Expression
   = Expr_Literal
   | Expr_This
+
+data Literal
+  = IntL Integer
+  | FloatL Float
+  | CharL Char
+  | StringL String
+  | NullPtr
+  | BoolL Bool

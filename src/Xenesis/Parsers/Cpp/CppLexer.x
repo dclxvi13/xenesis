@@ -26,10 +26,17 @@ $cppLetterOrDigit = [a-zA-Z0-9\_]
 @exponent = [eE] @expsuffix
 @pexponent = [pP] @expsuffix
 
+@octEscape = [0123]? $octdig{1,2}
+@hexEscape = u $hexdig{4}
+@charEscape = \\ (@octEscape | @hexEscape | [btnfr\"\'\\])
+
+
 tokens  :-
+    -- Whitespaces & comments
     $white+         ;
     @comm           ;
 
+    -- Keywords
     alignas         {\p _ -> L (pos p) $ KW_alignas }
     alignof         {\p _ -> L (pos p) $ KW_alignof }
     asm             {\p _ -> L (pos p) $ KW_asm }
@@ -106,10 +113,20 @@ tokens  :-
     true            {\p _ -> L (pos p) $ Lit_boolean True }
     false           {\p _ -> L (pos p) $ Lit_boolean False }
 
+    -- Literals
     0                               { \p _ -> L (pos p) $ Lit_integer 0 }
     $nonzero $digit*                { \p s -> L (pos p) $ Lit_integer (read s) }
+    -- TODO float
+
+    ' (@charEscape | ~[\\\']) '               { \p s -> L (pos p) $ Lit_char (readCharTok s) }
+
+    \" (@charEscape | ~[\\\"])* \"            { \p s -> L (pos p) $ Lit_string (readStringTok s) }
+
+
+    -- Identifier
     $cppLetter $cppLetterOrDigit*   { \p s -> L (pos p) $ IdentifierToken s }
 
+    -- Punctuation & Operators
     \{              {\p _ -> L (pos p) $ Punc_OpenCurly   }
     \}              {\p _ -> L (pos p) $ Punc_CloseCurly  }
     \[              {\p _ -> L (pos p) $ Punc_OpenSquare  }
@@ -121,7 +138,7 @@ tokens  :-
     \,              {\p _ -> L (pos p) $ Punc_Comma       }
     ":"             {\p _ -> L (pos p) $ Punc_Colon       }
 --    "?"             {\p _ -> L (pos p) $ Op_ }
---    "#"             {\p _ -> L (pos p) $ Op_ }
+    "#"             {\p _ -> L (pos p) $ Punc_Hash }
 --    "##"            {\p _ -> L (pos p) $ Op_ }
 --    "<:"            {\p _ -> L (pos p) $ Op_ }
 --    ":>"            {\p _ -> L (pos p) $ Op_ }
@@ -261,7 +278,7 @@ data Token
 
     -- Literals
     | Lit_integer   Integer
-    | Lit_character Char
+    | Lit_char      Char
     | Lit_float     Float
     | Lit_string    String
     | Lit_boolean   Bool
@@ -278,6 +295,7 @@ data Token
     | Punc_Period
     | Punc_Comma
     | Punc_Colon
+    | Punc_Hash
     | Op_Add
     | Op_Sub
     | Op_Mul
@@ -335,6 +353,14 @@ type Pos = (Int, Int)
 
 pos :: AlexPosn -> Pos
 pos (AlexPn _ l c) = (l,c)
+
+readCharTok :: String -> Char
+readCharTok s = head . dropQuotes $ s
+readStringTok :: String -> String
+readStringTok = dropQuotes
+
+dropQuotes :: String -> String
+dropQuotes s = take (length s - 2) (tail s)
 
 lexer :: String -> [L Token]
 lexer = alexScanTokens
