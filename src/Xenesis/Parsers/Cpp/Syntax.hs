@@ -1,13 +1,14 @@
 module Xenesis.Parsers.Cpp.Syntax where
 
-type Include = String
+--type Include = String
 
 data TranslationUnit =
-  TU [Include]
+  TU [IncludeDirective]
      [Declaration]
+  deriving (Show)
 
-newtype Ident =
-  Ident String
+newtype Id =
+  Id String
 
 data Declaration
   = Decl_Block
@@ -19,10 +20,20 @@ data Declaration
   | Def_Namespace
   | Decl_Empty
   | Decl_Attribute
+  deriving (Show)
+
+data IncludeDirective =
+  Include String
+  deriving (Show)
 
 data Expression
   = Expr_Literal
   | Expr_This
+
+data Type
+  = IntType
+  | VoidType
+  | UserType String
 
 data Literal
   = IntL Integer

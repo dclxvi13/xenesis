@@ -18,6 +18,30 @@ translationUnit = do
 {----------------------------------------------------------
 - Parser impl
 -----------------------------------------------------------}
+include :: P Include
+include = includeAngles <|> includeStr
+
+includeAngles :: P Include
+includeAngles = do
+  tok Punc_Hash
+  --tok KW_include
+  Id s <- angles ident
+  return $ s
+
+includeStr :: P Include
+includeStr = do
+  tok Punc_Hash
+  -- tok KW_include
+  s <- cppString
+  return s
+
+cppString :: P String
+cppString =
+  cppToken $ \t ->
+    case t of
+      Lit_string s -> Just s
+      _ -> Nothing
+
 
 literal :: P Literal
 literal =
@@ -31,11 +55,11 @@ literal =
       Token_Nullptr -> Just NullPtr
       _ -> Nothing
 
-ident :: P Ident
+ident :: P Id
 ident =
   cppToken $ \t ->
     case t of
-      IdentifierToken s -> Just $ Ident s
+      IdentifierToken s -> Just $ Id s
       _                 -> Nothing
 
 list :: P a -> P [a]
