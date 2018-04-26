@@ -1,14 +1,14 @@
-module Xenesis.Parsers.Cpp.Language where
+module Xenesis.Parsers.BaseLang.Language where
 
 import           Text.Parsec
 import qualified Text.Parsec.Token as P
 
-cppLang :: P.LanguageDef ()
-cppLang =
+baseLang :: P.LanguageDef ()
+baseLang =
   P.LanguageDef
-    { P.commentStart = "/*"
-    , P.commentEnd = "*/"
-    , P.commentLine = "//"
+    { P.commentStart = ""
+    , P.commentEnd = ""
+    , P.commentLine = ";;"
     , P.nestedComments = False
     , P.identStart = letter <|> char '_'
     , P.identLetter = alphaNum <|> char '_'
@@ -19,22 +19,17 @@ cppLang =
     , P.reservedOpNames = operators
     }
 
-opSymbol = oneOf "+-<>"
+opSymbol = oneOf ""
 
-names = ["#include", "int", "void"]
+names = ["set", "import", "module", "defun", "defmacro"]
 
-operators = ["<<", ">>"]
+operators = []
 
-lexer = P.makeTokenParser cppLang
+lexer = P.makeTokenParser baseLang
 
 identifier = P.identifier lexer
 
 reserved = P.reserved lexer
-
-operator = P.operator lexer
-
-reservedOp = P.reservedOp lexer
-
 charLiteral = P.charLiteral lexer
 
 stringLiteral = P.stringLiteral lexer
@@ -48,21 +43,3 @@ symbol = P.symbol lexer
 lexeme = P.symbol lexer
 
 parens = P.parens lexer
-
-braces = P.braces lexer
-
-angles = P.angles lexer
-
-brackets = P.brackets lexer
-
-semi = P.semi lexer
-
-colon = P.colon lexer
-
-dot = P.dot lexer
-
-comma = P.comma lexer
-
-semiSep = P.semiSep lexer
-
-commaSep = P.commaSep lexer

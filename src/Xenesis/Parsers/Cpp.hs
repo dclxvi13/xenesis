@@ -18,22 +18,22 @@ translationUnit = do
 {----------------------------------------------------------
 - Parser impl
 -----------------------------------------------------------}
-include :: P Include
+include :: P IncludeDirective
 include = includeAngles <|> includeStr
 
-includeAngles :: P Include
+includeAngles :: P IncludeDirective
 includeAngles = do
   tok Punc_Hash
   --tok KW_include
   Id s <- angles ident
-  return $ s
+  return $ Include s
 
-includeStr :: P Include
+includeStr :: P IncludeDirective
 includeStr = do
   tok Punc_Hash
   -- tok KW_include
   s <- cppString
-  return s
+  return $ Include s
 
 cppString :: P String
 cppString =
