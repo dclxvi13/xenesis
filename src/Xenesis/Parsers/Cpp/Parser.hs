@@ -6,6 +6,7 @@ import           Text.Parsec
 
 import           Xenesis.Parsers.Cpp.Language
 import           Xenesis.Parsers.Cpp.Syntax
+import Xenesis.Parsers.Cpp.Expr
 
 type P = Parsec String ()
 
@@ -69,7 +70,8 @@ varDeclSimple = do
 ---------------------------------------------
 -- Expressions
 ---------------------------------------------
-
+expression :: P Expression
+expression = expr
 ---------------------------------------------
 -- Types
 ---------------------------------------------
@@ -118,12 +120,6 @@ wcharType :: P Type
 wcharType = do
   reserved "wchar_t"
   return WCharType
-
----------------------------------------------
--- Literals
----------------------------------------------
-
-literal = undefined
 
 ---------------------------------------------
 -- Identifier

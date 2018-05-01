@@ -1,17 +1,15 @@
 module Xenesis.Parsers.Cpp.Syntax where
 
---type Include = String
-
 data TranslationUnit =
   TU [IncludeDirective]
      [Declaration]
-  deriving (Show)
+  deriving (Show, Eq)
 
 data Id =
   Id String
   | Ref Id
   | Ptr Id
-  deriving (Show)
+  deriving (Show, Eq)
 
 data Declaration
   = Decl_Block
@@ -23,10 +21,14 @@ data Declaration
   | Def_Namespace
   | Decl_Empty
   | Decl_Attribute
-  deriving (Show)
+  deriving (Show, Eq)
 
 data IncludeDirective =
   Include String
+  deriving (Show, Eq)
+
+data Statement
+  = VarDecl Type Id
   deriving (Show, Eq)
 
 data Expression
@@ -36,6 +38,7 @@ data Expression
   | Expr_FunctionCall Id [Id]
   | UnaryOperation UnaryOperator Expression
   | BinaryOperation BinaryOperator Expression Expression
+  deriving (Show, Eq)
 
 data UnaryOperator
   = IncrementPref
@@ -43,14 +46,12 @@ data UnaryOperator
   | DecrementPref
   | DecrementPost
   | GetRef
+  deriving (Show, Eq)
 
 data BinaryOperator
   = Add
   | Multi
-
-data Statement
-  = VarDecl Type Id
-  deriving (Show)
+  deriving (Show, Eq)
 
 data Type
   = BoolType
@@ -61,12 +62,13 @@ data Type
   | WCharType
   | VoidType
   | UserType Id
-  deriving (Show)
+  deriving (Show, Eq)
 
 data Literal
   = IntL Integer
-  | FloatL Float
+  | FloatL Double
   | CharL Char
   | StringL String
   | NullPtr
   | BoolL Bool
+  deriving (Show, Eq)

@@ -1,12 +1,14 @@
-module Xenesis.Parsers.Cpp.Expr where
+module Xenesis.Parsers.Cpp.Expr
+  ( expr
+  ) where
 
 import           Text.Parsec
 import           Text.Parsec.Expr
 
 import           Xenesis.Parsers.Cpp.Language
-import           Xenesis.Parsers.Cpp.Parser
 import           Xenesis.Parsers.Cpp.Syntax
 
+expr, term :: Parsec String () Expression
 expr = buildExpressionParser table term <?> "expression"
 
 term =
@@ -15,10 +17,14 @@ term =
       return $ Expr_Literal l)
 
 table =
-  [[prefix "++" IncrementPref, prefix "--" DecrementPref]
-  ,[postfix "++" IncrementPost, postfix "--" DecrementPost]
-  ,[binary "+" Add AssocLeft]]
+  [ [prefix "++" IncrementPref, prefix "--" DecrementPref]
+  , [postfix "++" IncrementPost, postfix "--" DecrementPost]
+  , [binary "+" Add AssocLeft]
+  ]
 
+-----------------------------------------------------------------------
+-- Operator definitions
+-----------------------------------------------------------------------
 binary name op assoc =
   Infix
     (do reservedOp name
@@ -34,3 +40,31 @@ postfix name op =
   Postfix
     (do reservedOp name
         return $ UnaryOperation op)
+
+---------------------------------------------
+-- Literals
+---------------------------------------------
+literal =
+  boolLiteral <|> intLiteral <|> floatLiteral <|> nullPtr <|>
+  (do str <- stringLiteral
+      return $ StringL str) <|>
+  (do ch <- charLiteral
+      return $ CharL ch)
+
+boolLiteral =
+  (do reserved "true"
+      return $ BoolL True) <|>
+  (do reserved "false"
+      return $ BoolL False)
+
+intLiteral = do
+  val <- integer
+  return $ IntL val
+
+floatLiteral = do
+  val <- float
+  return $ FloatL val
+
+nullPtr = do
+  reserved "nullptr"
+  return NullPtr
