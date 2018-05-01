@@ -21,7 +21,7 @@ baseLang =
 
 opSymbol = oneOf ""
 
-names = ["set", "import", "module", "defun", "defmacro"]
+names = ["set", "import", "module", "defun", "defmacro", "nil"]
 
 operators = []
 
@@ -30,6 +30,7 @@ lexer = P.makeTokenParser baseLang
 identifier = P.identifier lexer
 
 reserved = P.reserved lexer
+
 charLiteral = P.charLiteral lexer
 
 stringLiteral = P.stringLiteral lexer
