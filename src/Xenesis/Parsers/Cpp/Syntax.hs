@@ -1,7 +1,7 @@
 module Xenesis.Parsers.Cpp.Syntax where
 
 data TranslationUnit =
-  TU [IncludeDirective]
+  TU [Directive]
      [Declaration]
   deriving (Show, Eq)
 
@@ -23,12 +23,14 @@ data Declaration
   | Decl_Attribute
   deriving (Show, Eq)
 
-data IncludeDirective =
+data Directive =
   Include String
   deriving (Show, Eq)
 
 data Statement
   = VarDecl Type Id
+  | ExprSimple Expression
+  | SetValue Id Expression
   deriving (Show, Eq)
 
 data Expression
@@ -61,6 +63,7 @@ data Type
   | DoubleType
   | WCharType
   | VoidType
+  | AutoType
   | UserType Id
   deriving (Show, Eq)
 

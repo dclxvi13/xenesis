@@ -4,9 +4,9 @@ import           Prelude                      hiding (id)
 
 import           Text.Parsec
 
+import           Xenesis.Parsers.Cpp.Expr
 import           Xenesis.Parsers.Cpp.Language
 import           Xenesis.Parsers.Cpp.Syntax
-import Xenesis.Parsers.Cpp.Expr
 
 type P = Parsec String ()
 
@@ -25,7 +25,7 @@ translationUnit = do
 declaration :: P Declaration
 declaration = funcDecl
 
-include :: P IncludeDirective
+include :: P Directive
 include = do
   reserved "#include"
   s <- stringLiteral <|> angles identifier
@@ -59,7 +59,7 @@ statements :: P [Statement]
 statements = semiSep statement
 
 statement :: P Statement
-statement = choice [varDeclSimple]
+statement = choice [varDeclSimple, setStatement, simpleExpression]
 
 varDeclSimple :: P Statement
 varDeclSimple = do
@@ -67,24 +67,49 @@ varDeclSimple = do
   name <- id <|> ptr
   return $ VarDecl t name
 
+setStatement :: P Statement
+setStatement = do
+  i <- id <|> ptr
+  reservedOp "="
+  e <- expression
+  return $ SetValue i e
+
+simpleExpression :: P Statement
+simpleExpression = do
+  e <- expression
+  return $ ExprSimple e
+
 ---------------------------------------------
 -- Expressions
 ---------------------------------------------
 expression :: P Expression
 expression = expr
+
 ---------------------------------------------
 -- Types
 ---------------------------------------------
 cppType :: P Type
-cppType = primitiveType <|> userType
+cppType = primitiveType <|> userType <|> autoType
 
 userType :: P Type
 userType = do
   t <- id
   return $ UserType t
 
+autoType :: P Type
+autoType = do
+  reserved "auto"
+  return AutoType
+
 primitiveType :: P Type
-primitiveType = choice [boolType, charType, intType, floatType, doubleType, wcharType, voidType]
+primitiveType =
+  choice [ boolType
+         , charType
+         , intType
+         , floatType
+         , doubleType
+         , wcharType
+         , voidType]
 
 intType :: P Type
 intType = do

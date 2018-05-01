@@ -1,6 +1,6 @@
 module CppParserTest where
 
-import           Data.Either                (isLeft)
+import           Data.Either                (isLeft, isRight)
 
 import           Test.HUnit
 
@@ -13,9 +13,10 @@ run = runTestTT tests
 
 tests =
   TestList
-    [ TestLabel "Parse include in angles" anglesIncludeTest
-    , TestLabel "Parse include with quotes" quotesIncludeTest
-    , TestLabel "Parse include with comment at the end" includeWithCommentTest
+    [ "Parse include in angles" ~: anglesIncludeTest
+    , "Parse include with quotes" ~: quotesIncludeTest
+    , "Parse include with comment at the end" ~: includeWithCommentTest
+    , "Parse simple add expression" ~: addExpressionTest
     ]
 
 -----------------------------------------------
@@ -23,9 +24,13 @@ tests =
 -----------------------------------------------
 includeParser = runParser include () ""
 
+expressionParser = runParser expression () ""
+
 -----------------------------------------------
 -- Tests
 -----------------------------------------------
+
+-- Include
 anglesIncludeTest =
   TestCase
     (do let str = "#include <abcd>"
@@ -43,3 +48,9 @@ includeWithCommentTest =
     (do let str = "#include <abcd> //comment"
             expected = Right $ Include "abcd"
         assertEqual str expected $ includeParser str)
+
+-- Expression
+addExpressionTest =
+  TestCase
+    (do let str = "42 + 1"
+        assertBool str $ isRight $ expressionParser str)
