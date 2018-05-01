@@ -7,8 +7,10 @@ data TranslationUnit =
      [Declaration]
   deriving (Show)
 
-newtype Id =
+data Id =
   Id String
+  | Ref Id
+  | Ptr Id
   deriving (Show)
 
 data Declaration
@@ -25,21 +27,40 @@ data Declaration
 
 data IncludeDirective =
   Include String
-  deriving (Show)
+  deriving (Show, Eq)
 
 data Expression
-  = Expr_Literal
+  = Expr_Literal Literal
   | Expr_This
+  | Expr_Id Id
+  | Expr_FunctionCall Id [Id]
+  | UnaryOperation UnaryOperator Expression
+  | BinaryOperation BinaryOperator Expression Expression
+
+data UnaryOperator
+  = IncrementPref
+  | IncrementPost
+  | DecrementPref
+  | DecrementPost
+  | GetRef
+
+data BinaryOperator
+  = Add
+  | Multi
 
 data Statement
   = VarDecl Type Id
   deriving (Show)
 
 data Type
-  = IntType
+  = BoolType
+  | IntType
+  | CharType
+  | FloatType
+  | DoubleType
+  | WCharType
   | VoidType
   | UserType Id
-  | PtrType Type
   deriving (Show)
 
 data Literal

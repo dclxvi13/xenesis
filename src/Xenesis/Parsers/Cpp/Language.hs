@@ -19,11 +19,11 @@ cppLang =
     , P.reservedOpNames = operators
     }
 
-opSymbol = oneOf "+-<>"
+opSymbol = oneOf "+-<>=&*"
 
-names = ["#include", "int", "void"]
+names = ["#include", "int", "void", "bool", "char", "float", "double", "wchar_t"]
 
-operators = ["<<", ">>"]
+operators = ["<<", ">>", "==", "="]
 
 lexer = P.makeTokenParser cppLang
 

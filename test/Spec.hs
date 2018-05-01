@@ -1,2 +1,6 @@
+import CppParserTest (run)
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = do
+  run
+  return ()
