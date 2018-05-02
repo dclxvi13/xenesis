@@ -12,14 +12,61 @@ expr, term :: Parsec String () Expression
 expr = buildExpressionParser table term <?> "expression"
 
 term =
-  parens expr <|>
-  (do l <- literal
-      return $ Expr_Literal l)
+  choice
+    [ literal
+    , funcCall
+    , arrayElemByIndex
+    , typeCastOperation
+    , sizeofOperation
+    , newOperation
+    , deleteOperation
+    , throwExpr
+    , parens expr
+    ]
 
 table =
-  [ [prefix "++" IncrementPref, prefix "--" DecrementPref]
-  , [postfix "++" IncrementPost, postfix "--" DecrementPost]
-  , [binary "+" Add AssocLeft]
+  [ [binary "::" Op_Visibility AssocLeft]
+  , [ postfix "++" Op_IncrementPost
+    , postfix "--" Op_DecrementPost
+    , binary "." Op_AccessByRef AssocLeft
+    , binary "->" Op_AccessByPtr AssocLeft
+    ]
+  , [ prefix "++" Op_IncrementPref
+    , prefix "--" Op_DecrementPref
+    , prefix "+" Op_Plus
+    , prefix "-" Op_Minus
+    , prefix "!" Op_Not
+    , prefix "~" Op_BitNot
+    , prefix "*" Op_Indirection
+    , prefix "&" Op_GetRef
+    ]
+  , [] --TODO add operations of getting member ptr by ref and by ptr (.* and ->*)
+  , [binary "*" Op_Multi AssocLeft, binary "/" Op_Division AssocLeft, binary "%" Op_Remaining AssocLeft]
+  , [binary "+" Op_Add AssocLeft, binary "-" Op_Subtract AssocLeft]
+  , [binary "<<" Op_ShiftLeft AssocLeft, binary ">>" Op_ShiftRight AssocLeft]
+  , [ binary "<" Op_Less AssocLeft
+    , binary "<=" Op_LessOrEq AssocLeft
+    , binary ">" Op_Greater AssocLeft
+    , binary ">=" Op_GreaterOrEq AssocLeft
+    ]
+  , [binary "==" Op_Eq AssocLeft, binary "!=" Op_NotEq AssocLeft]
+  , [binary "&" Op_BitAnd AssocLeft]
+  , [binary "^" Op_BitXor AssocLeft]
+  , [binary "|" Op_BitOr AssocLeft]
+  , [binary "&&" Op_And AssocLeft]
+  , [binary "||" Op_Or AssocLeft]
+  , [ binary "=" Op_Assign AssocRight
+    , binary "+=" Op_AssignAdd AssocRight
+    , binary "-=" Op_AssignSub AssocRight
+    , binary "*=" Op_AssignMul AssocRight
+    , binary "/=" Op_AssignDiv AssocRight
+    , binary "%=" Op_AssignRem AssocRight
+    , binary "<<=" Op_AssignShiftLeft AssocRight
+    , binary ">>=" Op_AssignShiftRight AssocRight
+    , binary "&=" Op_AssignBitAnd AssocRight
+    , binary "^=" Op_AssignBitXor AssocRight
+    , binary "|=" Op_AssignBitOr AssocRight
+    ]
   ]
 
 -----------------------------------------------------------------------
@@ -41,15 +88,42 @@ postfix name op =
     (do reservedOp name
         return $ UnaryOperation op)
 
+----------------------------------------------------------------------
+-- Terms
+----------------------------------------------------------------------
+arrayElemByIndex = do
+  name <- expr
+  e <- brackets expr
+  return $ Expr_ElemByIndex name e
+
+funcCall = do
+  name <- expr
+  ps <- parens $ commaSep expr
+  return $ Expr_FunctionCall name ps
+
+typeCastOperation = undefined
+
+sizeofOperation = undefined
+
+newOperation = undefined
+
+deleteOperation = undefined
+
+ternarOperation = undefined
+
+throwExpr = undefined
+
 ---------------------------------------------
 -- Literals
 ---------------------------------------------
-literal =
-  boolLiteral <|> intLiteral <|> floatLiteral <|> nullPtr <|>
-  (do str <- stringLiteral
-      return $ StringL str) <|>
-  (do ch <- charLiteral
-      return $ CharL ch)
+literal = do
+  l <-
+    boolLiteral <|> intLiteral <|> floatLiteral <|> nullPtr <|>
+    (do str <- stringLiteral
+        return $ StringL str) <|>
+    (do ch <- charLiteral
+        return $ CharL ch)
+  return $ Expr_Literal l
 
 boolLiteral =
   (do reserved "true"

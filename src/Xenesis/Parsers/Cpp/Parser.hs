@@ -111,10 +111,29 @@ primitiveType =
          , wcharType
          , voidType]
 
+shortType :: P Type
+shortType = do
+  reserved "short"
+  optional $ reserved "int"
+  return ShortType
+
 intType :: P Type
 intType = do
   reserved "int"
   return IntType
+
+longType :: P Type
+longType = do
+  reserved "long"
+  optional $ reserved "int"
+  return LongType
+
+longLongType :: P Type
+longLongType = do
+  reserved "long"
+  reserved "long"
+  optional $ reserved "int"
+  return LongLongType
 
 voidType :: P Type
 voidType = do

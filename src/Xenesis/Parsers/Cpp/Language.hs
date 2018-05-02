@@ -19,7 +19,7 @@ cppLang =
     , P.reservedOpNames = operators
     }
 
-opSymbol = oneOf "+-<>=&*/%^&|~!"
+opSymbol = oneOf "+-<>=&*/%^&|~!."
 
 names =
   [ "alignas"
@@ -98,7 +98,9 @@ names =
   ]
 
 operators =
-  [ "="
+  [ "=" -- assign
+  , "." -- access by ref
+  , "->" -- access by ptr
   , "+"
   , "-"
   , "*"
