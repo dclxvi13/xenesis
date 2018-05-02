@@ -41,8 +41,14 @@ data Expression
   | Expr_ElemByRef Expression Expression
   | Expr_ElemByPtr Expression Expression
   | Expr_FunctionCall Expression [Expression]
-  | UnaryOperation UnaryOperator Expression
-  | BinaryOperation BinaryOperator Expression Expression
+  | Expr_TypeCast Expression Expression
+  | Expr_Sizeof Expression
+  | Expr_New Expression
+  | Expr_Delete Expression
+  | Expr_Throw Expression
+  | Expr_UnaryOp UnaryOperator Expression
+  | Expr_BinaryOp BinaryOperator Expression Expression
+  | Expr_TernarOp Expression Expression Expression
   deriving (Show, Eq)
 
 data UnaryOperator

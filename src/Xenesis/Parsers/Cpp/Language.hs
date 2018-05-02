@@ -41,6 +41,7 @@ names =
   , "decltype"
   , "default"
   , "delete"
+  , "delete[]"
   , "do"
   , "double"
   , "dynamic_cast"
@@ -61,6 +62,7 @@ names =
   , "mutable"
   , "namespace"
   , "new"
+  , "new[]"
   , "noexcept"
   , "nullptr"
   , "operator"
@@ -95,12 +97,15 @@ names =
   , "volatile"
   , "wchar_t"
   , "while"
+  , "#include"
   ]
 
 operators =
   [ "=" -- assign
   , "." -- access by ref
   , "->" -- access by ptr
+  , "?"
+  , ":"
   , "+"
   , "-"
   , "*"

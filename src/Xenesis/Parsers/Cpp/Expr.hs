@@ -14,6 +14,7 @@ expr = buildExpressionParser table term <?> "expression"
 term =
   choice
     [ literal
+    , ident
     , funcCall
     , arrayElemByIndex
     , typeCastOperation
@@ -75,18 +76,18 @@ table =
 binary name op assoc =
   Infix
     (do reservedOp name
-        return $ BinaryOperation op)
+        return $ Expr_BinaryOp op)
     assoc
 
 prefix name op =
   Prefix
     (do reservedOp name
-        return $ UnaryOperation op)
+        return $ Expr_UnaryOp op)
 
 postfix name op =
   Postfix
     (do reservedOp name
-        return $ UnaryOperation op)
+        return $ Expr_UnaryOp op)
 
 ----------------------------------------------------------------------
 -- Terms
@@ -101,17 +102,42 @@ funcCall = do
   ps <- parens $ commaSep expr
   return $ Expr_FunctionCall name ps
 
-typeCastOperation = undefined
+typeCastOperation = do
+  t <- parens expr
+  e <- expr
+  return $ Expr_TypeCast t e
 
-sizeofOperation = undefined
+sizeofOperation = do
+  reserved "sizeof"
+  e <- expr
+  return $ Expr_Sizeof e
 
-newOperation = undefined
+newOperation = do
+  reserved "new" <|> reserved "new[]"
+  e <- expr
+  return $ Expr_New e
 
-deleteOperation = undefined
+deleteOperation = do
+  reserved "delete" <|> reserved "delete[]"
+  e <- expr
+  return $ Expr_Delete e
 
-ternarOperation = undefined
+ternarOperation = do
+  cond <- expr
+  reservedOp "?"
+  true <- expr
+  reservedOp ":"
+  false <- expr
+  return $ Expr_TernarOp cond true false
 
-throwExpr = undefined
+throwExpr = do
+  reserved "throw"
+  e <- expr
+  return $ Expr_Throw e
+
+ident = do
+  s <- identifier
+  return $ Expr_Id $ Id s
 
 ---------------------------------------------
 -- Literals
