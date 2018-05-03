@@ -14,6 +14,7 @@ expr = buildExpressionParser table term <?> "expression"
 term =
   choice
     [ literal
+    , this
     , ident
     , funcCall
     , arrayElemByIndex
@@ -138,6 +139,10 @@ throwExpr = do
 ident = do
   s <- identifier
   return $ Expr_Id $ Id s
+
+this = do
+  reserved "this"
+  return Expr_This
 
 ---------------------------------------------
 -- Literals

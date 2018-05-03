@@ -28,9 +28,19 @@ data Directive =
   deriving (Show, Eq)
 
 data Statement
-  = VarDecl Type Id
-  | ExprSimple Expression
-  | SetValue Id Expression
+  = Stat_VarDecl Type Id (Maybe Expression)
+  | Stat_Expr Expression
+  | Stat_If Expression [Statement]
+  | Stat_IfElse Expression [Statement] [Statement]
+  | Stat_Switch Expression [(Expression, [Statement])]
+  | Stat_While Expression [Statement]
+  | Stat_For Statement Expression Expression [Statement]
+  | Stat_ForRanged Statement Expression [Statement]
+  | Stat_DoWhile Expression [Statement]
+  | Stat_Return Expression
+  | Stat_Break
+  | Stat_Continue
+  | Stat_GoTo Id
   deriving (Show, Eq)
 
 data Expression

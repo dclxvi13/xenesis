@@ -4,7 +4,7 @@ import           Prelude                      hiding (id)
 
 import           Text.Parsec
 
-import           Xenesis.Parsers.Cpp.Expr
+import qualified Xenesis.Parsers.Cpp.Expr     as E
 import           Xenesis.Parsers.Cpp.Language
 import           Xenesis.Parsers.Cpp.Syntax
 
@@ -52,6 +52,12 @@ parameter = do
 ---------------------------------------------
 -- Statements
 ---------------------------------------------
+oneOrCompound :: P [Statement]
+oneOrCompound =
+  (do s <- statement
+      return [s]) <|>
+  compound
+
 compound :: P [Statement]
 compound = braces statements
 
@@ -59,31 +65,102 @@ statements :: P [Statement]
 statements = semiSep statement
 
 statement :: P Statement
-statement = choice [varDeclSimple, setStatement, simpleExpression]
+statement =
+  choice
+    [ varDecl
+    , breakStatement
+    , continueStatement
+    , returnStatement
+    , ifStatement
+    , whileStatement
+    , doWhileStatement
+    , forStatement
+    , gotoStatement
+    , simpleExpression
+    ]
 
-varDeclSimple :: P Statement
-varDeclSimple = do
+varDecl :: P Statement
+varDecl = do
   t <- cppType
   name <- id <|> ptr
-  return $ VarDecl t name
-
-setStatement :: P Statement
-setStatement = do
-  i <- id <|> ptr
-  reservedOp "="
-  e <- expression
-  return $ SetValue i e
+  e <-
+    optionMaybe $ do
+      reservedOp "="
+      expression
+  return $ Stat_VarDecl t name e
 
 simpleExpression :: P Statement
 simpleExpression = do
   e <- expression
-  return $ ExprSimple e
+  return $ Stat_Expr e
+
+continueStatement :: P Statement
+continueStatement = do
+  reserved "continue"
+  return Stat_Continue
+
+breakStatement :: P Statement
+breakStatement = do
+  reserved "break"
+  return Stat_Break
+
+returnStatement :: P Statement
+returnStatement = do
+  reserved "return"
+  e <- expression
+  return $ Stat_Return e
+
+ifStatement :: P Statement
+ifStatement = do
+  reserved "if"
+  cond <- parens expression
+  s <- oneOrCompound
+  return $ Stat_If cond s
+
+whileStatement :: P Statement
+whileStatement = do
+  reserved "while"
+  cond <- parens expression
+  s <- oneOrCompound
+  return $ Stat_While cond s
+
+doWhileStatement :: P Statement
+doWhileStatement = do
+  reserved "do"
+  s <- oneOrCompound
+  reserved "while"
+  e <- parens expression
+  return $ Stat_DoWhile e s
+
+forStatement :: P Statement
+forStatement = do
+  reserved "for"
+  (s', e1', e2') <-
+    parens $ do
+      s <- statement
+      semi
+      e1 <- expression
+      semi
+      e2 <- expression
+      return (s, e1, e2)
+  ss <- oneOrCompound
+  return $ Stat_For s' e1' e2' ss
+
+-- TODO implement for ranged
+forRangedStatement :: P Statement
+forRangedStatement = undefined
+
+gotoStatement :: P Statement
+gotoStatement = do
+  reserved "goto"
+  i <- id
+  return $ Stat_GoTo i
 
 ---------------------------------------------
 -- Expressions
 ---------------------------------------------
 expression :: P Expression
-expression = expr
+expression = E.expr
 
 ---------------------------------------------
 -- Types
@@ -102,14 +179,7 @@ autoType = do
   return AutoType
 
 primitiveType :: P Type
-primitiveType =
-  choice [ boolType
-         , charType
-         , intType
-         , floatType
-         , doubleType
-         , wcharType
-         , voidType]
+primitiveType = choice [boolType, charType, intType, floatType, doubleType, wcharType, voidType]
 
 shortType :: P Type
 shortType = do

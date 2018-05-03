@@ -16,8 +16,18 @@ tests =
     [ "Parse include in angles" ~: anglesIncludeTest
     , "Parse include with quotes" ~: quotesIncludeTest
     , "Parse include with comment at the end" ~: includeWithCommentTest
+    -- Expressions
     , "Parse simple add expression" ~: addExpressionTest
+    , "Parse complex increment expression" ~: complexIncrementTest
+   -- , "Parse id with 3 minus must fail" ~: threeMinusTest
     ]
+
+test' str fun ex =
+  TestCase
+    (assertBool str $ fun $ ex str)
+
+pass' = isRight
+fail' = isLeft
 
 -----------------------------------------------
 -- Prepare test
@@ -52,5 +62,16 @@ includeWithCommentTest =
 -- Expression
 addExpressionTest =
   TestCase
-    (do let str = "42 + 1"
-        assertBool str $ isRight $ expressionParser str)
+    (do let str = "42+1"
+            expected = Right $ Expr_BinaryOp Op_Add (Expr_Literal $ IntL 42) (Expr_Literal $ IntL 1)
+        assertEqual str expected $ expressionParser str)
+
+complexIncrementTest = test' "++i + ++i" pass' expressionParser
+
+threeMinusTest = test' "ab---" fail' expressionParser
+threeMinusTest' =
+  TestCase
+    (do let str = "ab---"
+            actual = expressionParser str
+        --print actual
+        assertBool str $ fail' actual)
